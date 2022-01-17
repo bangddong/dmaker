@@ -53,7 +53,7 @@ public class DMakerController {
         return dMakerService.editDeveloper(memberId, request);
     }
 
-    @DeleteMapping("/developer/{memberId")
+    @DeleteMapping("/developer/{memberId}")
     public DeveloperDetailDto deleteDeveloper(
             @PathVariable String memberId
     ) {

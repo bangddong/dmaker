@@ -3,10 +3,10 @@ POST http://127.0.0.1:8080/create-developer
 Content-Type: application/json
 
 {
-  "developerLevel": "JUNIOR",
-  "developerSkillType": "BACK_END",
-  "experienceYears": 2,
-  "memberId": "Mini",
-  "name": "Mouse Kim",
-  "age": 20
+  "developerLevel": "SENIOR",
+  "developerSkillType": "FULL_STACK",
+  "experienceYears": 12,
+  "memberId": "Mani",
+  "name": "mouse",
+  "age": 32
 }

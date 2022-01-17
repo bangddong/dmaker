@@ -1,3 +1,3 @@
 ### Get DeveloperDetail Test
-GET http://127.0.0.1:8080/developer/Mini
+GET http://127.0.0.1:8080/developer/Mani
 Accept: application/json
