@@ -6,7 +6,6 @@ import com.fastcampus.programming.dmaker.entity.Developer;
 import com.fastcampus.programming.dmaker.exception.DMakerErrorCode;
 import com.fastcampus.programming.dmaker.exception.DMakerException;
 import com.fastcampus.programming.dmaker.repository.DeveloperRepository;
-import com.fastcampus.programming.dmaker.repository.RetiredDeveloperRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -21,6 +20,7 @@ import static com.fastcampus.programming.dmaker.type.DeveloperLevel.SENIOR;
 import static com.fastcampus.programming.dmaker.type.DeveloperSkillType.FRONT_END;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -30,8 +30,6 @@ import static org.mockito.Mockito.verify;
 class DMakerServiceTest {
     @Mock
     private DeveloperRepository developerRepository;
-    @Mock
-    private RetiredDeveloperRepository retiredDeveloperRepository;
 
     @InjectMocks
     private DMakerService dMakerService;
@@ -73,10 +71,12 @@ class DMakerServiceTest {
         //given
         given(developerRepository.findByMemberId(anyString()))
                 .willReturn(Optional.empty());
+        given(developerRepository.save(any()))
+                .willReturn(defaultDeveloper);
         ArgumentCaptor<Developer> captor =
                 ArgumentCaptor.forClass(Developer.class);
         //when
-        CreateDeveloper.Response developer = dMakerService.createDeveloper(defaultCreateRequest);
+        dMakerService.createDeveloper(defaultCreateRequest);
 
         //then
         verify(developerRepository, times(1))

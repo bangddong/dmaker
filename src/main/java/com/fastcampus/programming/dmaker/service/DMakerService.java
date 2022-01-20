@@ -10,10 +10,11 @@ import com.fastcampus.programming.dmaker.exception.DMakerException;
 import com.fastcampus.programming.dmaker.repository.DeveloperRepository;
 import com.fastcampus.programming.dmaker.repository.RetiredDeveloperRepository;
 import com.fastcampus.programming.dmaker.type.DeveloperLevel;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,7 +32,16 @@ public class DMakerService {
     @Transactional
     public CreateDeveloper.Response createDeveloper(CreateDeveloper.Request request) {
         validateCreateDeveloperRequest(request);
-        Developer developer = Developer.builder()
+
+        return CreateDeveloper.Response.fromEntity(
+                developerRepository.save(
+                        createDeveloperFromRequest(request)
+                )
+        );
+    }
+
+    private Developer createDeveloperFromRequest(CreateDeveloper.Request request) {
+        return Developer.builder()
                 .developerLevel(request.getDeveloperLevel())
                 .developerSkillType(request.getDeveloperSkillType())
                 .experienceYears(request.getExperienceYears())
@@ -40,36 +50,41 @@ public class DMakerService {
                 .name(request.getName())
                 .age(request.getAge())
                 .build();
-
-        developerRepository.save(developer);
-        return CreateDeveloper.Response.fromEntity(developer);
     }
 
+    @Transactional(readOnly = true)
     public List<DeveloperDto> getAllEmployedDevelopers() {
         return developerRepository.findDeveloperByStatusCodeEquals(EMPLOYED)
                 .stream().map(DeveloperDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public DeveloperDetailDto getDeveloperDetail(String memberId) {
+        return DeveloperDetailDto.fromEntity(getDeveloperByMemberId(memberId));
+    }
+
+    private Developer getDeveloperByMemberId(String memberId) {
         return developerRepository.findByMemberId(memberId)
-                .map(DeveloperDetailDto::fromEntity)
-                .orElseThrow(() -> new DMakerException(NO_DEVELOPER));
+                .orElseThrow(() -> new DMakerException(NO_DEVELOPER)
+                );
     }
 
     @Transactional
     public DeveloperDetailDto editDeveloper(String memberId, EditDeveloper.Request request) {
-        validateEditDeveloperRequest(request);
+        validateDeveloperLevel(request.getDeveloperLevel(), request.getExperienceYears());
 
-        Developer developer = developerRepository.findByMemberId(memberId).orElseThrow(
-                () -> new DMakerException(NO_DEVELOPER)
+        return DeveloperDetailDto.fromEntity(
+                getUpdatedDeveloperFromRequest(request, getDeveloperByMemberId(memberId))
         );
+    }
 
+    private Developer getUpdatedDeveloperFromRequest(EditDeveloper.Request request, Developer developer) {
         developer.setDeveloperLevel(request.getDeveloperLevel());
         developer.setDeveloperSkillType(request.getDeveloperSkillType());
         developer.setExperienceYears(request.getExperienceYears());
 
-        return DeveloperDetailDto.fromEntity(developer);
+        return developer;
     }
 
     @Transactional
@@ -92,12 +107,8 @@ public class DMakerService {
     /**
      * 간단한 Valid 가 아닌 좀 더 복잡한 비즈니스 밸리데이션용.
      */
-    private void validateEditDeveloperRequest(EditDeveloper.Request request) {
+    private void validateCreateDeveloperRequest(@NonNull CreateDeveloper.Request request) {
         validateDeveloperLevel(request.getDeveloperLevel(), request.getExperienceYears());
-    }
-
-    private void validateCreateDeveloperRequest(CreateDeveloper.Request request) {
-        validateDeveloperLevel(request.getDeveloperLevel(),request.getExperienceYears());
 
         developerRepository.findByMemberId(request.getMemberId())
                 .ifPresent((developer -> {
